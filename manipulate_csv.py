@@ -54,6 +54,8 @@ def remove_pot_transfers(data_frame):
     # Remove entries where 'Type' is 'Pot transfer'
     return data_frame[data_frame['Type'] != 'Pot transfer']
 
+def find_rent(data_frame):
+    pass
 
 
 def main():
@@ -62,9 +64,13 @@ def main():
 
     data_frame = remove_pot_transfers(data_frame)
 
-    money['other']['credit_card_payments'] = filter_credit_card(data_frame)
+    # removes from db and extracts credit card payments
+    data_frame, cc_payments = filter_credit_card(data_frame)
+    money['other']['credit_card_payments'] = cc_payments
 
-    print(money)
+
+
+    print(data_frame['Type'])
 
 
 if __name__ == "__main__":
