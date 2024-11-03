@@ -88,6 +88,20 @@ def find_payroll(data_frame):
     data_frame = data_frame[~(data_frame['Name'] == f'{employer}')]
     return data_frame, payroll
 
+def find_transfers_in(data_frame):
+    """Return the amount recieved in transfers & the filtered db"""
+    transfers = 0
+
+    # Filters for all payments made in GBP
+    filtered_db = data_frame[~((data_frame['Category'] == 'Income'))]
+
+    payments = data_frame[((data_frame['Category'] == 'Income'))]
+    if not payments.empty:  # Check if the DataFrame is not empty
+        for i, payment in enumerate(payments.itertuples()):  # Use itertuples for iteration
+            transfers += payment.Amount  # Access Amount directly from the tuple
+
+    return filtered_db, transfers
+
 # rename to filtering
 def main():
     # Load in Novemeber csv banking data
@@ -118,8 +132,8 @@ def main():
     # transfers
 
     # split general spending into categories
-
-
+    data_frame, transfers = find_transfers_in(data_frame)
+    money['income']['transfers'] = transfers
 
 
     print(data_frame['Name'])
