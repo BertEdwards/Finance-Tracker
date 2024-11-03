@@ -1,3 +1,5 @@
 .DS_Store
 paths.py
 Hidden Data
+__pycache__/
+*.pyc
