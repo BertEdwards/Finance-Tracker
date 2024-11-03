@@ -1,6 +1,36 @@
 import pandas as pd
 from paths import nov_data
 
+# Data structure to extract to
+to_extract = {
+    'income':{
+        'total': None,
+        'payroll': None,
+        'transfers': None,
+    },
+
+    'recurring':{
+        'rent': None,
+        'insurance': None,
+        'gym': None,
+    },
+
+    'spending':{
+        'groceries': None,
+        'dining_out': None,
+        'entertainment': None,
+        'general': None,
+        'hobbies': None,
+        'transport': None,
+        'shopping': None,
+        'other': None
+    },
+
+    'holiday':{
+        'general': None
+    }
+}
+
 def load_csv(file_path):
     # Load the CSV file into a DataFrame
     try:
@@ -15,10 +45,6 @@ def load_csv(file_path):
         print("There was an error parsing the file.")
 
 
-
-
-# Now you can manipulate 'data_frame' as needed
-# For example, to show the first few rows:
 
 
 
