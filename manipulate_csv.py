@@ -1,8 +1,8 @@
 import pandas as pd
-from paths import nov_data
+from paths import nov_data, filter_credit_card
 
 # Data structure to extract to
-to_extract = {
+money = {
     'income':{
         'total': None,
         'payroll': None,
@@ -28,6 +28,10 @@ to_extract = {
 
     'holiday':{
         'general': None
+    },
+
+    'other': {
+        'credit_card_payments': None
     }
 }
 
@@ -45,6 +49,10 @@ def load_csv(file_path):
         print("There was an error parsing the file.")
 
 
+# Removes from statement
+def remove_pot_transfers(data_frame):
+    # Remove entries where 'Type' is 'Pot transfer'
+    return data_frame[data_frame['Type'] != 'Pot transfer']
 
 
 
@@ -52,8 +60,12 @@ def main():
     # Load in Novemeber csv banking data
     data_frame = load_csv(nov_data)
 
-    if data_frame is not None:
-        print(data_frame.head())
+    data_frame = remove_pot_transfers(data_frame)
+
+    money['other']['credit_card_payments'] = filter_credit_card(data_frame)
+
+    print(money)
+
 
 if __name__ == "__main__":
     main()
