@@ -1,5 +1,5 @@
 import pandas as pd
-from paths import nov_data, filter_credit_card
+from paths import nov_data,landlord, filter_credit_card
 
 # Data structure to extract to
 money = {
@@ -55,7 +55,18 @@ def remove_pot_transfers(data_frame):
     return data_frame[data_frame['Type'] != 'Pot transfer']
 
 def find_rent(data_frame):
-    pass
+    """Return the amount of rent paid & the filtered db"""
+    rent = data_frame[(data_frame['Type'] == 'Faster payment') & 
+                      (data_frame['Name'] == f'{landlord}') & 
+                      (data_frame['Description'].str.contains('Rent', na=False))]
+    rent = rent['Amount'].sum()  # Assuming 'Money Out' contains the amounts
+
+    # Filters df to remove rent payment
+    data_frame = data_frame[~((data_frame['Type'] == 'Faster payment') & 
+                              (data_frame['Name'] == f'{landlord}') & 
+                              (data_frame['Notes and #tags'].str.contains('M3 Rent', na=False)))]
+    return data_frame, rent
+
 
 
 def main():
@@ -68,6 +79,9 @@ def main():
     data_frame, cc_payments = filter_credit_card(data_frame)
     money['other']['credit_card_payments'] = cc_payments
 
+    # Removed from db and extracts rent payment
+    data_frame, rent = find_rent(data_frame)
+    money['recurring']['rent'] = rent
 
 
     print(data_frame['Type'])
