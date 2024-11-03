@@ -1,5 +1,5 @@
 import pandas as pd
-from paths import nov_data,landlord, filter_credit_card
+from paths import nov_data,landlord, filter_credit_card, find_insurance
 
 # Data structure to extract to
 money = {
@@ -59,7 +59,7 @@ def find_rent(data_frame):
     rent = data_frame[(data_frame['Type'] == 'Faster payment') & 
                       (data_frame['Name'] == f'{landlord}') & 
                       (data_frame['Description'].str.contains('Rent', na=False))]
-    rent = rent['Amount'].sum()  # Assuming 'Money Out' contains the amounts
+    rent = rent['Amount'].sum()
 
     # Filters df to remove rent payment
     data_frame = data_frame[~((data_frame['Type'] == 'Faster payment') & 
@@ -67,6 +67,19 @@ def find_rent(data_frame):
                               (data_frame['Notes and #tags'].str.contains('M3 Rent', na=False)))]
     return data_frame, rent
 
+def find_holiday(data_frame):
+    """Return the amount spent abroad & the filtered db"""
+    holiday_spend = 0
+
+    # Filters for all payments made in GBP
+    filtered_db = data_frame[((data_frame['Local currency'] == 'GBP'))]
+
+    payments = data_frame[~((data_frame['Local currency'] == 'GBP'))]
+    if not payments.empty:  # Check if the DataFrame is not empty
+        for i, payment in enumerate(payments.itertuples()):  # Use itertuples for iteration
+            holiday_spend += payment.Amount  # Access Amount directly from the tuple
+
+    return filtered_db, holiday_spend
 
 
 def main():
@@ -83,8 +96,17 @@ def main():
     data_frame, rent = find_rent(data_frame)
     money['recurring']['rent'] = rent
 
+    # Removed from db and extracts insurance payment
+    data_frame, insurance = find_insurance(data_frame)
+    money['recurring']['insurance'] = insurance
 
-    print(data_frame['Type'])
+    # Removed from db and extracts holiday payments
+    data_frame, holiday = find_holiday(data_frame)
+    money['holiday']['general'] = holiday
+
+
+    # print(data_frame['Name'])
+    print(money)
 
 
 if __name__ == "__main__":
