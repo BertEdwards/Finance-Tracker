@@ -1,5 +1,5 @@
 import pandas as pd
-from paths import nov_data,landlord, filter_credit_card, find_insurance
+from private import nov_data,landlord,employer, filter_credit_card, find_insurance
 
 # Data structure to extract to
 money = {
@@ -81,7 +81,14 @@ def find_holiday(data_frame):
 
     return filtered_db, holiday_spend
 
+def find_payroll(data_frame):
+    payroll = data_frame[(data_frame['Name'] == f'{employer}')]
+    payroll = payroll['Amount'].sum()
 
+    data_frame = data_frame[~(data_frame['Name'] == f'{employer}')]
+    return data_frame, payroll
+
+# rename to filtering
 def main():
     # Load in Novemeber csv banking data
     data_frame = load_csv(nov_data)
@@ -104,10 +111,27 @@ def main():
     data_frame, holiday = find_holiday(data_frame)
     money['holiday']['general'] = holiday
 
+    # Identify income 
+    # payroll 
+    data_frame, payroll = find_payroll(data_frame)
+    money['income']['payroll'] = payroll
+    # transfers
 
-    # print(data_frame['Name'])
-    print(money)
+    # split general spending into categories
 
+
+
+
+    print(data_frame['Name'])
+    # print(money)
+
+
+# Once all basic filtering complete
+# 1 - use openAI or eqv to to match categories.
+# 2 - push all into SQL
+# 3 - do some visulaisation of key stats vs goals
+# 4 - introduce recipt machine vision 
+# 5 - run on a server so i can just email (or alternative) interactions.
 
 if __name__ == "__main__":
     main()
