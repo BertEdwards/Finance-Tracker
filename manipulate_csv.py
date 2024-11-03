@@ -1,6 +1,11 @@
 import pandas as pd
 from private import nov_data,landlord,employer, filter_credit_card, find_insurance
 
+from pydantic import BaseModel
+from openai import OpenAI
+
+client = OpenAI()
+
 # Data structure to extract to
 money = {
     'income':{
@@ -16,14 +21,14 @@ money = {
     },
 
     'spending':{
-        'groceries': None,
-        'dining_out': None,
-        'entertainment': None,
-        'general': None,
-        'hobbies': None,
-        'transport': None,
-        'shopping': None,
-        'other': None
+        'groceries': 0,
+        'dining_out': 0,
+        'entertainment': 0,
+        'general': 0,
+        'hobbies': 0,
+        'transport': 0,
+        'shopping': 0,
+        'other': 0
     },
 
     'holiday':{
@@ -103,7 +108,7 @@ def find_transfers_in(data_frame):
     return filtered_db, transfers
 
 # rename to filtering
-def main():
+def filter_db():
     # Load in Novemeber csv banking data
     data_frame = load_csv(nov_data)
 
@@ -135,17 +140,81 @@ def main():
     data_frame, transfers = find_transfers_in(data_frame)
     money['income']['transfers'] = transfers
 
+    data_frame.rename(columns={'Notes and #tags': 'Notes'}, inplace=True)
 
-    print(data_frame['Name'])
-    # print(money)
+    return data_frame
+
+def sort_spending(data_frame):
+    """goes through db payment by payment and allocates a category"""
+    # iterate over payments in db
+    for i, payment in enumerate(data_frame.itertuples()):
+        # get info passing on
+        _type = payment.Type
+        name = payment.Name
+        notes = payment.Notes
+
+        category = category_sort(name, _type, notes)
+
+        # print('////////////////')
+        # print(f"type: {_type}, name: {name}, notes: {notes}")
+        # print(f"category: {category}")
+
+        money['spending'][category] += payment.Amount
+
+        # print(payment.Amount)
+
+        # print(data_frame.columns)
+
+        # make the open AI request
+        # store the info
+
+    # feed openAI relevant info
+
+    # get back a category (from predefined list)
+
+    # Add that payment to category total
+
+def main():
+    data_frame = filter_db()
+    sort_spending(data_frame)
+    print(money)
+
+def category_sort(name, _type, notes): 
+
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content":  """You are a financial assistant. I have a list of predefined spending categories:
+                    'groceries', 'dining_out', 'entertainment', 'general', 'hobbies', 'transport', 'shopping', and 'other'.
+                        Given a product or spending description, please match it to the most appropriate category from this list and return only the single category name.
+                    """},
+            {
+                "role": "user",
+                "content": f"What category should be applied to a payment with Name: {name}, type: {_type}, and notes: {notes}"
+            }
+        ]
+    )
+
+    category = completion.choices[0].message.content.strip().split(',')
+
+    return category[0]
+
 
 
 # Once all basic filtering complete
 # 1 - use openAI or eqv to to match categories.
-# 2 - push all into SQL
-# 3 - do some visulaisation of key stats vs goals
+# 2 - push all into SQL- every time something is filtered out of db: push to SQL
+# 3 - do some visulaisation of key stats vs goals - split by size of supermarket
 # 4 - introduce recipt machine vision 
 # 5 - run on a server so i can just email (or alternative) interactions.
 
 if __name__ == "__main__":
     main()
+    # name = 'Transport for London'
+    # _type = 'Card payment'
+    # notes = 'Travel charge for Wednesday, 16 Oct'
+
+    # bob = category_sort(name, _type, notes)
+
+    # print(bob)
+
