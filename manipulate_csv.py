@@ -9,15 +9,15 @@ client = OpenAI()
 # Data structure to extract to
 money = {
     'income':{
-        'total': None,
-        'payroll': None,
-        'transfers': None,
+        'total': 0,
+        'payroll': 0,
+        'transfers': 0,
     },
 
     'recurring':{
-        'rent': None,
-        'insurance': None,
-        'gym': None,
+        'rent': 0,
+        'insurance': 0,
+        'gym': 0,
     },
 
     'spending':{
@@ -32,11 +32,11 @@ money = {
     },
 
     'holiday':{
-        'general': None
+        'general': 0
     },
 
     'other': {
-        'credit_card_payments': None
+        'credit_card_payments': 0
     }
 }
 
