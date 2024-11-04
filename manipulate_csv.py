@@ -279,12 +279,47 @@ def chart_one():
 
     return plot_url
 
+def chart_two():
+    # Extract labels and convert values to positive from 'spending' category in money
+    spending_data = money['spending']
+    labels = [key for key in spending_data if key != 'total']
+    sizes = [abs(spending_data[key]) for key in labels]  # Take the absolute values
+
+    # Generate the pie chart
+    img = io.BytesIO()
+    plt.figure(figsize=(8, 6))  # Increase figure size
+    plt.pie(
+        sizes, 
+        labels=labels, 
+        autopct='%1.1f%%', 
+        shadow=True, 
+        startangle=140,
+        pctdistance=0.85,        # Adjust distance of percentage text
+        labeldistance=1.1,       # Adjust distance of labels
+        wedgeprops=dict(edgecolor='w')  # Add border to wedges
+    )
+    plt.title("Spending Breakdown (Absolute Values)", fontsize=16)
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+
+    return plot_url
 
 @app.route('/')
 def index():
     plot_url1 = chart_one()
+    plot_url2 = chart_two()
 
-    return f'<img src="data:image/png;base64,{plot_url1}">'
+    # Render both charts on the same page
+    return f'''
+        <h1>Finance_tracker.py</h1>
+        <h2>Spend vs Save</h2>
+        <img src="data:image/png;base64,{plot_url1}">
+        <h2>Spending Breakdwon</h2>
+        <img src="data:image/png;base64,{plot_url2}">
+    '''
 
 
 # Once all basic filtering complete
