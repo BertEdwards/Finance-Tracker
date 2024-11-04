@@ -249,17 +249,18 @@ def category_sort(name, _type, notes):
 
 app = Flask(__name__)
 
-@app.route('/')
-def index():
+def chart_one():
+    # Calculate spending and saved values in one line each
+    spending = -money['spending']['total']
+    saved = sum(money[category]['total'] for category in ['income', 'spending', 'recurring', 'holiday', 'other'])
 
-    spending = -1 * money['spending']['total'] 
-    saved = money['income']['total'] + money['spending']['total'] + money['recurring']['total'] + money['holiday']['total'] + money['other']['total']
-
-    spending_val = (spending / (spending + saved)) * 100
-    saved_val = (saved / (spending + saved)) * 100
+    # Calculate percentages
+    total = spending + saved
+    spending_val = (spending / total) * 100
+    saved_val = (saved / total) * 100
 
     # data for pie chart
-    labels = ['Spending', 'Saved']
+    labels = [f'Spending, £{spending}', f'Saved, £{saved}']
     sizes = [spending_val, saved_val]  # The percentages for each category
     colors = ['blue', 'orange']
     explode = (0.1, 0)  # 'explode' the 2nd slice
@@ -276,8 +277,14 @@ def index():
     plot_url = base64.b64encode(img.getvalue()).decode()
     plt.close()  # Close the plot to free memory
 
+    return plot_url
 
-    return f'<img src="data:image/png;base64,{plot_url}">'
+
+@app.route('/')
+def index():
+    plot_url1 = chart_one()
+
+    return f'<img src="data:image/png;base64,{plot_url1}">'
 
 
 # Once all basic filtering complete
