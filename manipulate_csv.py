@@ -3,6 +3,13 @@ from private import nov_data,landlord,employer, filter_credit_card, find_insuran
 
 from pydantic import BaseModel
 from openai import OpenAI
+import matplotlib
+matplotlib.use('Agg')  # Use the Agg backend for non-GUI rendering
+
+from flask import Flask, render_template, Response
+import matplotlib.pyplot as plt
+import io
+import base64
 
 client = OpenAI()
 
@@ -15,12 +22,14 @@ money = {
     },
 
     'recurring':{
+        'total': 0,
         'rent': 0,
         'insurance': 0,
         'gym': 0,
     },
 
     'spending':{
+        'total': 0,
         'groceries': 0,
         'dining_out': 0,
         'entertainment': 0,
@@ -32,10 +41,12 @@ money = {
     },
 
     'holiday':{
+        'total': 0,
         'general': 0
     },
 
     'other': {
+        'total': 0,
         'credit_card_payments': 0
     }
 }
@@ -177,7 +188,35 @@ def sort_spending(data_frame):
 def main():
     data_frame = filter_db()
     sort_spending(data_frame)
-    print(money)
+
+    # Calculate the sum of all values except 'total'
+    income_sum = sum(value for key, value in money['income'].items() if key != 'total')
+    # store this sum in 'total' key
+    money['income']['total'] = income_sum
+
+    # Calculate the sum of all values except 'total'
+    spending_sum = sum(value for key, value in money['spending'].items() if key != 'total')
+    # store this sum in 'total' key
+    money['spending']['total'] = spending_sum
+
+    # Calculate the sum of all values except 'total'
+    recurring_sum = sum(value for key, value in money['recurring'].items() if key != 'total')
+    # store this sum in 'total' key
+    money['recurring']['total'] = recurring_sum
+
+    # Calculate the sum of all values except 'total'
+    holiday_sum = sum(value for key, value in money['holiday'].items() if key != 'total')
+    # store this sum in 'total' key
+    money['holiday']['total'] = holiday_sum
+
+    # Calculate the sum of all values except 'total'
+    other_sum = sum(value for key, value in money['other'].items() if key != 'total')
+    # store this sum in 'total' key
+    money['other']['total'] = other_sum
+
+
+    # print(money)
+
 
 def category_sort(name, _type, notes): 
 
@@ -199,6 +238,46 @@ def category_sort(name, _type, notes):
 
     return category[0]
 
+### Plotting
+# for chart one
+# spending = -1*money['spending']['total'] 
+# saved = money['income']['total'] - money['spending']['total'] - money['recurring']['total'] - money['holiday']['total'] - money['other']['total']
+
+# spending_val = (spending / (spending + saved)) * 100
+# saved_val = (saved / (spending + saved)) * 100
+
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+
+    spending = -1 * money['spending']['total'] 
+    saved = money['income']['total'] + money['spending']['total'] + money['recurring']['total'] + money['holiday']['total'] + money['other']['total']
+
+    spending_val = (spending / (spending + saved)) * 100
+    saved_val = (saved / (spending + saved)) * 100
+
+    # data for pie chart
+    labels = ['Spending', 'Saved']
+    sizes = [spending_val, saved_val]  # The percentages for each category
+    colors = ['blue', 'orange']
+    explode = (0.1, 0)  # 'explode' the 2nd slice
+
+    # Generate the pie chart
+    img = io.BytesIO()
+    plt.figure(figsize=(6, 4))
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
+    plt.title("Spending Chart")
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    # Encode the plot as a base64 string
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()  # Close the plot to free memory
+
+
+    return f'<img src="data:image/png;base64,{plot_url}">'
 
 
 # Once all basic filtering complete
@@ -210,6 +289,9 @@ def category_sort(name, _type, notes):
 
 if __name__ == "__main__":
     main()
+    app.run(debug=True)
+
+
     # name = 'Transport for London'
     # _type = 'Card payment'
     # notes = 'Travel charge for Wednesday, 16 Oct'
