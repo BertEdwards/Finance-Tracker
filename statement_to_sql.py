@@ -50,10 +50,12 @@ class DbConnection():
             # logger.error(f"Error: '{err}'", exc_info=True)
 
 
-class WriteMonthlyData(DbConnection):
-    def __init__(self, host_name, user_name, db_name, money) -> None:
-        super().__init__(host_name, user_name, db_name)
-        self.money = money
+class WriteMonthlyData(DbConnection, MonzoStatement):
+    def __init__(self, host_name, user_name, db_name, csv_path) -> None:
+        DbConnection.__init__(self, host_name, user_name, db_name)
+
+        MonzoStatement.__init__(self, csv_path)
+
 
     def write_to_overview(self, month, year):
 
@@ -82,18 +84,15 @@ class WriteMonthlyData(DbConnection):
 
 def main():
     # Write september data
-    september = MonzoStatement(sept_data)
-    sept_write = WriteMonthlyData("localhost", "root", "finance_tracker", september.money)
+    sept_write = WriteMonthlyData("localhost", "root", "finance_tracker", sept_data)
     sept_write.write_to_overview("september", 2024)
 
     # write august data
-    august = MonzoStatement(aug_data)
-    august_write = WriteMonthlyData("localhost", "root", "finance_tracker", august.money)
+    august_write = WriteMonthlyData("localhost", "root", "finance_tracker", sept_data)
     august_write.write_to_overview("august", 2024)
 
     # write july data
-    july = MonzoStatement(july_data)
-    july_write = WriteMonthlyData("localhost", "root", "finance_tracker", july.money)
+    july_write = WriteMonthlyData("localhost", "root", "finance_tracker", sept_data)
     july_write.write_to_overview("november", 2024)
 
     do_export("Overview", "finance_tracker")
