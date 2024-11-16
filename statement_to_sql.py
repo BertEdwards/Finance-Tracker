@@ -3,7 +3,7 @@ import mysql.connector
 from mysql.connector import Error
 import os
 from monzo_import import MonzoStatement
-from private import nov_data
+from private import sept_data, aug_data, july_data
 
 #for testing 
 from sql_to_csv import do_export
@@ -81,10 +81,20 @@ class WriteMonthlyData(DbConnection):
         self.execute_query(query, params)
 
 def main():
-    # november = MonzoStatement(nov_data)
-    # november.money
-    # nov_write = WriteMonthlyData("localhost", "root", "finance_tracker", november.money)
-    # nov_write.write_to_overview("october", 2024)
+    # Write september data
+    september = MonzoStatement(sept_data)
+    sept_write = WriteMonthlyData("localhost", "root", "finance_tracker", september.money)
+    sept_write.write_to_overview("september", 2024)
+
+    # write august data
+    august = MonzoStatement(aug_data)
+    august_write = WriteMonthlyData("localhost", "root", "finance_tracker", august.money)
+    august_write.write_to_overview("august", 2024)
+
+    # write july data
+    july = MonzoStatement(july_data)
+    july_write = WriteMonthlyData("localhost", "root", "finance_tracker", july.money)
+    july_write.write_to_overview("november", 2024)
 
     do_export("Overview", "finance_tracker")
 

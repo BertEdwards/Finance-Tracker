@@ -1,5 +1,5 @@
 import pandas as pd
-from private import nov_data,landlord,employer, filter_credit_card, find_insurance
+from private import landlord,employer, filter_credit_card, find_insurance
 
 from pydantic import BaseModel
 from openai import OpenAI
@@ -202,8 +202,9 @@ class MonzoStatement:
 
 
 def main():
-    november = MonzoStatement(nov_data)
-    print(november.money)
+    # november = MonzoStatement(nov_data)
+    # print(november.money)
+    pass
 
 
 if __name__ == "__main__":
