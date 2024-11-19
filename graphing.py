@@ -3,6 +3,8 @@
 from statement_to_sql import DbConnection
 import pandas as pd
 from flask import Flask, render_template, Response
+import matplotlib
+matplotlib.use('Agg')  # Set the backend to Agg for non-GUI usage
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -44,6 +46,9 @@ class PullFromSql(DbConnection):
 class Plotting():
     def __init__(self, data) -> None:
         self.db = data
+        self.app = Flask(__name__)
+        # Define routes
+        self.app.add_url_rule('/', view_func=self.index)
 
 
     def plot_spend(self):
@@ -53,18 +58,13 @@ class Plotting():
         Parameters:
         - data (pd.DataFrame): DataFrame containing 'Month' and 'Amount (£)' columns.
         """
-        try:
-            # # Ensure the 'Month' column is in datetime format for proper sorting
-            # data['Month'] = pd.to_datetime(data['Month'], format='%Y-%m')
-            
-            # # Sort the data by month (if not already sorted)
-            # data = data.sort_values('Month')
-            
+        try:            
             monthly_spend = []
             for _, value in enumerate(self.db['total_out']):
                 monthly_spend.append(value*-1)
 
             # Plot the data
+            img = io.BytesIO()
             plt.figure(figsize=(10, 6))
             plt.plot(self.db['month'], monthly_spend, marker='o', linestyle='-', linewidth=2)
             plt.axhline(y=spend_limit, color='red', linestyle='--', label=f"Spend limit: {spend_limit}")  # Add 'spend limit' line
@@ -74,62 +74,34 @@ class Plotting():
             plt.grid(True, linestyle='--', alpha=0.6)
             plt.xticks(rotation=45)
             plt.tight_layout()
-            plt.show()
+            plt.savefig(img, format='png')
+            # plt.show()
+
+            
+            img.seek(0)
+
+            # Encode the plot as a base64 string
+            plot_url = base64.b64encode(img.getvalue()).decode()
+            plt.close()  # Close the plot to free memory
+
+            return plot_url
+        
         except Exception as e:
             print(f"An error occurred while plotting: {e}")
 
 
 
+    # @app.route('/')
+    def index(self):
+        plot_url1 = self.plot_spend()
 
-# class Plotting():
-#     def __init__(self) -> None:
-#         pass
+        # Render both charts on the same page
+        return f'''
+            <h1>Finance_tracker.py</h1>
+            <h2>Spend vs Save</h2>
+            <img src="data:image/png;base64,{plot_url1}">
 
-#     app = Flask(__name__)
-
-#     def chart_one():
-#         # Calculate spending and saved values in one line each
-#         spending = -money['spending']['total']
-#         saved = sum(money[category]['total'] for category in ['income', 'spending', 'recurring', 'holiday', 'other'])
-
-#         # Calculate percentages
-#         total = spending + saved
-#         spending_val = (spending / total) * 100
-#         saved_val = (saved / total) * 100
-
-#         # data for pie chart
-#         labels = [f'Spending, £{spending}', f'Saved, £{saved}']
-#         sizes = [spending_val, saved_val]  # The percentages for each category
-#         colors = ['blue', 'orange']
-#         explode = (0.1, 0)  # 'explode' the 2nd slice
-
-#         # Generate the pie chart
-#         img = io.BytesIO()
-#         plt.figure(figsize=(6, 4))
-#         plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
-#         plt.title("Spending Chart")
-#         plt.savefig(img, format='png')
-#         img.seek(0)
-
-#         # Encode the plot as a base64 string
-#         plot_url = base64.b64encode(img.getvalue()).decode()
-#         plt.close()  # Close the plot to free memory
-
-#         return plot_url
-
-#     @app.route('/')
-#     def index():
-#         plot_url1 = chart_one()
-#         plot_url2 = chart_two()
-
-#         # Render both charts on the same page
-#         return f'''
-#             <h1>Finance_tracker.py</h1>
-#             <h2>Spend vs Save</h2>
-#             <img src="data:image/png;base64,{plot_url1}">
-#             <h2>Spending Breakdwon</h2>
-#             <img src="data:image/png;base64,{plot_url2}">
-#         '''
+        '''
 
 def main():
     instance = PullFromSql('localhost', 'root', 'finance_tracker')
@@ -137,9 +109,47 @@ def main():
     # print(db.head())
 
     plots = Plotting(db)
-    plots.plot_spend()
+    # plots.plot_spend()
+    plots.index()
+
+    plots.app.run(debug=True)
 
 
 if __name__ == "__main__":
     main()
-    # app.run(debug=True)
+    
+
+
+
+
+
+
+    # def chart_one():
+    #     # Calculate spending and saved values in one line each
+    #     spending = -money['spending']['total']
+    #     saved = sum(money[category]['total'] for category in ['income', 'spending', 'recurring', 'holiday', 'other'])
+
+    #     # Calculate percentages
+    #     total = spending + saved
+    #     spending_val = (spending / total) * 100
+    #     saved_val = (saved / total) * 100
+
+    #     # data for pie chart
+    #     labels = [f'Spending, £{spending}', f'Saved, £{saved}']
+    #     sizes = [spending_val, saved_val]  # The percentages for each category
+    #     colors = ['blue', 'orange']
+    #     explode = (0.1, 0)  # 'explode' the 2nd slice
+
+    #     # Generate the pie chart
+    #     img = io.BytesIO()
+    #     plt.figure(figsize=(6, 4))
+    #     plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
+    #     plt.title("Spending Chart")
+    #     plt.savefig(img, format='png')
+    #     img.seek(0)
+
+    #     # Encode the plot as a base64 string
+    #     plot_url = base64.b64encode(img.getvalue()).decode()
+    #     plt.close()  # Close the plot to free memory
+
+    #     return plot_url
