@@ -2,10 +2,14 @@
 
 from statement_to_sql import DbConnection
 import pandas as pd
+from flask import Flask, render_template, Response
+import matplotlib.pyplot as plt
+import io
+import base64
 
 
 # Next.
-# Write function to extract data from sql
+# / Write function to extract data from sql 
 # plot monthly spend on a line graph. 
 # create new sql table for daily spend 
 # plot this data according to sketches
@@ -34,13 +38,42 @@ class PullFromSql(DbConnection):
         cursor.close()
         self.connection.close()
 
+        return self.db
+
+class Plotting():
+    def __init__(self, data) -> None:
+        self.db = data
+
+
+    def plot_spend(self):
+        """
+        Plots a line graph of monthly spending.
+
+        Parameters:
+        - data (pd.DataFrame): DataFrame containing 'Month' and 'Amount (£)' columns.
+        """
+        try:
+            # # Ensure the 'Month' column is in datetime format for proper sorting
+            # data['Month'] = pd.to_datetime(data['Month'], format='%Y-%m')
+            
+            # # Sort the data by month (if not already sorted)
+            # data = data.sort_values('Month')
+            
+            # Plot the data
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.db['month'], self.db['total_out'], marker='o', linestyle='-', linewidth=2)
+            plt.title("Monthly Spending", fontsize=16)
+            plt.xlabel("Month", fontsize=14)
+            plt.ylabel("Amount Spent (£)", fontsize=14)
+            plt.grid(True, linestyle='--', alpha=0.6)
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            plt.show()
+        except Exception as e:
+            print(f"An error occurred while plotting: {e}")
 
 
 
-# from flask import Flask, render_template, Response
-# import matplotlib.pyplot as plt
-# import io
-# import base64
 
 # class Plotting():
 #     def __init__(self) -> None:
@@ -95,7 +128,10 @@ class PullFromSql(DbConnection):
 def main():
     instance = PullFromSql('localhost', 'root', 'finance_tracker')
     db = instance.get_data()
-    print(instance.db.head())
+    # print(db.head())
+
+    plots = Plotting(db)
+    plots.plot_spend()
 
 
 if __name__ == "__main__":
