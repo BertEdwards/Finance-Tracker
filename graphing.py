@@ -6,6 +6,7 @@ from flask import Flask, render_template, Response
 import matplotlib.pyplot as plt
 import io
 import base64
+from private import spend_limit
 
 
 # Next.
@@ -59,9 +60,14 @@ class Plotting():
             # # Sort the data by month (if not already sorted)
             # data = data.sort_values('Month')
             
+            monthly_spend = []
+            for _, value in enumerate(self.db['total_out']):
+                monthly_spend.append(value*-1)
+
             # Plot the data
             plt.figure(figsize=(10, 6))
-            plt.plot(self.db['month'], self.db['total_out'], marker='o', linestyle='-', linewidth=2)
+            plt.plot(self.db['month'], monthly_spend, marker='o', linestyle='-', linewidth=2)
+            plt.axhline(y=spend_limit, color='red', linestyle='--', label=f"Spend limit: {spend_limit}")  # Add 'spend limit' line
             plt.title("Monthly Spending", fontsize=16)
             plt.xlabel("Month", fontsize=14)
             plt.ylabel("Amount Spent (£)", fontsize=14)
