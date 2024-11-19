@@ -23,7 +23,7 @@ class DbConnection():
         self.db_name = db_name
 
     # connecting to mysql server
-    def _create_db_connection(self):
+    def create_db_connection(self):
         """ Creates connection to mysql database"""
         self.connection = None
         try:
@@ -40,7 +40,7 @@ class DbConnection():
     
     def execute_query(self, query, params=None):
         """ Execute a query to the mysql database"""
-        self._create_db_connection()
+        self.create_db_connection()
         cursor = self.connection.cursor()
         try:
             cursor.execute(query, params)
