@@ -1,30 +1,41 @@
 # Takes sql data and graphs it
 
+from statement_to_sql import DbConnection
+import pandas as pd
+
+
 # Next.
 # Write function to extract data from sql
 # plot monthly spend on a line graph. 
 # create new sql table for daily spend 
 # plot this data according to sketches
 
-class DbConnection():
-    def __init__(self, db_config) -> None:
-        self.db_config = db_config
 
-        self._create_db_connection()
+class PullFromSql(DbConnection):
+    def __init__(self, host_name, user_name, db_name) -> None:
+        super().__init__(host_name, user_name, db_name)
+
+    def get_data(self):
+        self.create_db_connection()
+        cursor = self.connection.cursor()
+        
+        query = "SELECT * FROM Overview"
+
+        cursor.execute(query)
+
+        # Fetch all rows and column names
+        rows = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+
+        # Convert the data into a pandas DataFrame
+        self.db = pd.DataFrame(rows, columns=columns)
+        
+        # Close the cursor and connection
+        cursor.close()
+        self.connection.close()
 
 
-    # connecting to mysql server
-    def _create_db_connection(self):
-        """ Creates connection to mysql database"""
-        self.db_connection = None
-        self.db_cursor = None
-        try:
-            self.db_connection = mysql.connector.connect(**self.db_config)
-            self.db_cursor = self.db_connection.cursor()
-        except Error as err:
-            # logger.error(f"Error: '{err}'", exc_info=True)
-            print(f'Failed, {err}')
-        return self.db_connection, self.db_cursor
+
 
 # from flask import Flask, render_template, Response
 # import matplotlib.pyplot as plt
@@ -81,9 +92,12 @@ class DbConnection():
 #             <img src="data:image/png;base64,{plot_url2}">
 #         '''
 
+def main():
+    instance = PullFromSql('localhost', 'root', 'finance_tracker')
+    db = instance.get_data()
+    print(instance.db.head())
 
 
-
-# if __name__ == "__main__":
-#     main()
-#     app.run(debug=True)
+if __name__ == "__main__":
+    main()
+    # app.run(debug=True)
