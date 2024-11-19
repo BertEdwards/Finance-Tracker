@@ -13,7 +13,7 @@ from private import spend_limit
 
 # Next.
 # / Write function to extract data from sql 
-# plot monthly spend on a line graph. 
+# / plot monthly spend on a line graph. 
 # create new sql table for daily spend 
 # plot this data according to sketches
 
