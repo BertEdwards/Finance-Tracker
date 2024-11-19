@@ -82,6 +82,32 @@ class WriteMonthlyData(DbConnection, MonzoStatement):
 
         self.execute_query(query, params)
 
+    # def write_spending_cats(self, month, year):
+
+    #     params = {
+    #         'year': year, # Link each entry to Overview table
+    #         'month': month.strip(),
+    #         'date_hash': f"{month.lower()}{year}", # Creates a unique value for the entry in the db to prevent duplication
+    #         'total_spend': self.money['spending']['total'],
+    #         'groceries': self.money['spending']['groceries'],
+    #         'dining_out': self.money['spending']['dining_out'],
+    #         'entertainment': self.money['spending']['entertainment'],
+    #         'general': self.money['spending']['general'],
+    #         'hobbies': self.money['spending']['hobbies'],
+    #         'transport': self.money['spending']['transport'],
+    #         'shopping': self.money['spending']['shopping'],
+    #         'other': self.money['spending']['other']
+    #     }
+
+    #     query = """
+    #     INSERT INTO Overview 
+    #     (year, month, date_hash, total_in, total_out)
+    #     VALUES ( %(year)s, %(month)s, %(date_hash)s, %(total_in)s, %(total_out)s)
+
+    #     """
+
+    #     self.execute_query(query, params)
+
 def main():
     # Write september data
     sept_write = WriteMonthlyData("localhost", "root", "finance_tracker", sept_data)
