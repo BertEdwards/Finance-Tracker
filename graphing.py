@@ -6,7 +6,25 @@
 # create new sql table for daily spend 
 # plot this data according to sketches
 
+class DbConnection():
+    def __init__(self, db_config) -> None:
+        self.db_config = db_config
 
+        self._create_db_connection()
+
+
+    # connecting to mysql server
+    def _create_db_connection(self):
+        """ Creates connection to mysql database"""
+        self.db_connection = None
+        self.db_cursor = None
+        try:
+            self.db_connection = mysql.connector.connect(**self.db_config)
+            self.db_cursor = self.db_connection.cursor()
+        except Error as err:
+            # logger.error(f"Error: '{err}'", exc_info=True)
+            print(f'Failed, {err}')
+        return self.db_connection, self.db_cursor
 
 # from flask import Flask, render_template, Response
 # import matplotlib.pyplot as plt
